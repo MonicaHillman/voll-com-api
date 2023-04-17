@@ -50,7 +50,6 @@ const Container = styled.div`
 `;
 
 export default function Cadastro() {
-
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
     const [nome, setNome] = useState('');

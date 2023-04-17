@@ -1,11 +1,12 @@
+import IPaciente from "./IPaciente";
 import IProfissional from "./IProfissional";
 
 export default interface IConsulta extends IProfissional {
-    id: number,
-    data: string,
-    horario: string,
-    profissional: Array<IProfissional>,
-    especialidade: string,
-    paciente: string,
-    modalidade: string
+    id: string;
+    data: string;
+    desejaLembrete: boolean;
+    lembretes: string[];
+    motivoCancelamento: string | null;
+    especialista: IProfissional;
+    paciente: IPaciente;
 }

@@ -11,6 +11,7 @@ import Titulo from '../../components/Titulo';
 import useDadosConsulta from '../../hooks/useDadosConsulta';
 import useDadosProfissional from '../../hooks/useDadosProfissional';
 import ModalCadastro from './ModalCadastro';
+import autenticaStore from '../../stores/autentica.store';
 
 
 export default function Dashboard() {
@@ -21,6 +22,10 @@ export default function Dashboard() {
     if (consultasErro || profissionaisErro) {
         console.log("Ocorreu um erro na requisição")
     }
+
+
+    console.log(autenticaStore.usuario.token);
+
 
     return (
         <>
