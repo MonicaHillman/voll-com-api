@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Botao from "../../components/Botao";
 import CampoDigitacao from "../../components/CampoDigitacao";
 import logo from './assets/Logo.png';
+import autenticaStore from "../../stores/autentica.store";
+import usePost from "../../hooks/usePost";
 
 const Imagem = styled.img`
 padding: 2em 0;
@@ -45,18 +47,38 @@ width: 50%;
 `
 
 
+interface ILogin {
+    email: string;
+    senha: string;
+}
+
+
 export default function Login() {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
+    const { cadastrarDados, erro, sucesso, resposta } = usePost();
+    const navigate = useNavigate();
+
+    const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        const usuario: ILogin = { email: email, senha: senha }
+        cadastrarDados({ url: 'auth/login', dados: usuario });
+        if (sucesso) {
+            autenticaStore.login({ email: email, token: resposta });
+            navigate('/dashboard');
+        }
+    };
 
     return (
         <>
             <Imagem src={logo} alt="Logo da Voll" />
             <Titulo>Faça login em sua conta</Titulo>
-            <Formulario>
-                <CampoDigitacao label="Email" value={email} placeholder="Insira seu endereço de email" onChange={setEmail} />
-                <CampoDigitacao label="Senha" value={senha} placeholder="Insira sua senha" onChange={setSenha} />
+            <Formulario onSubmit={handleLogin}>
+                <CampoDigitacao tipo="email" label="Email" value={email} placeholder="Insira seu endereço de email" onChange={setEmail} />
+                <CampoDigitacao tipo="password" label="Senha" value={senha} placeholder="Insira sua senha" onChange={setSenha} />
                 <BotaoCustomizado type="submit">Entrar</BotaoCustomizado>
+                {erro ? <p>{'Verifique suas credenciais'}</p> : ''}
             </Formulario>
             <Paragrafo>Esqueceu sua senha?</Paragrafo>
             <ParagrafoCadastro>Ainda não tem conta? <LinkCustomizado to="#">Faça seu cadastro!</LinkCustomizado></ParagrafoCadastro>

@@ -1,6 +1,6 @@
-import { Router } from 'express'
-import { verificaTokenJWT } from '../auth/verificaTokenJWT.js'
-import { resolver } from '../apiError/ErrorHandler.js'
+import { Router } from "express";
+import { verificaTokenJWT } from "../auth/verificaTokenJWT.js";
+
 import {
   lerPacientes,
   criarPaciente,
@@ -8,21 +8,27 @@ import {
   atualizarPaciente,
   desativaPaciente,
   atualizarEnderecoPaciente,
-  loginPaciente,
-  logoutPaciente
-} from './pacienteController.js'
+  listaConsultasPaciente,
+} from "./pacienteController.js";
+import { Role } from "../auth/roles.js";
 
-export const pacienteRouter = Router()
+export const pacienteRouter = Router();
 
-pacienteRouter.get('/', resolver(lerPacientes))
-pacienteRouter.post('/', resolver(criarPaciente))
-pacienteRouter.get('/:id', resolver(lerPaciente))
-pacienteRouter.put('/:id', verificaTokenJWT, resolver(atualizarPaciente))
-pacienteRouter.delete('/:id', verificaTokenJWT, resolver(desativaPaciente))
-pacienteRouter.patch('/:id', verificaTokenJWT, resolver(atualizarEnderecoPaciente))
-pacienteRouter.post('/login', resolver(loginPaciente))
-pacienteRouter.post('/logout', verificaTokenJWT, resolver(logoutPaciente))
-
+pacienteRouter.get("/", lerPacientes);
+pacienteRouter.post("/", criarPaciente);
+pacienteRouter.get("/:id", lerPaciente);
+pacienteRouter.get("/:id/consultas", listaConsultasPaciente);
+pacienteRouter.put("/:id", verificaTokenJWT(Role.paciente), atualizarPaciente);
+pacienteRouter.delete(
+  "/:id",
+  verificaTokenJWT(Role.paciente),
+  desativaPaciente
+);
+pacienteRouter.patch(
+  "/:id",
+  verificaTokenJWT(Role.paciente),
+  atualizarEnderecoPaciente
+);
 export default (app) => {
-  app.use('/paciente', pacienteRouter)
-}
+  app.use("/paciente", pacienteRouter);
+};

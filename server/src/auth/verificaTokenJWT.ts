@@ -1,15 +1,36 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import jwt from 'jsonwebtoken'
+import { type Role } from './roles'
+import { AppError, Status } from '../error/ErrorHandler.js'
 
-export function verificaTokenJWT (req, res, next): void {
-  const token = req.headers.token
+export function verificaTokenJWT (...role: Role[]) {
+  return (req, res, next): any => {
+    if (!req.headers.authorization) { throw new AppError('Nenhum token informado.', Status.BAD_REQUEST) }
 
-  if (!token) { return res.status(401).json({ auth: false, message: 'Nenhum token informado.' }) }
+    const tokenString: string[] = req.headers.authorization.split(' ')
+    const token = tokenString[1]
 
-  jwt.verify(token, process.env.SECRET, function (err, decoded) {
-    if (err) { return res.status(500).send({ auth: false, message: 'Falha ao autenticar o token.' }) }
+    // Nenhuma token informado
+    if (!token) {
+      return res
+        .status(403)
+        .json({ auth: false, message: 'Nenhum token informado.' })
+    }
 
-    req.userId = decoded.id
-    next()
-  })
+    // Verifica se o token é válido
+    jwt.verify(token, process.env.SECRET, function (err, decoded) {
+      if (err) {
+        return res
+          .status(403)
+          .json({ auth: false, message: 'Falha ao autenticar o token.' })
+      }
+
+      if (role.length > 0 && !role.includes(decoded.role)) {
+        return res.status(403).json({ auth: false, message: 'Não autorizado' })
+      }
+
+      req.userId = decoded.id
+      next()
+    })
+  }
 }

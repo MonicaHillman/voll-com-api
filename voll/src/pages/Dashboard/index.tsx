@@ -8,8 +8,8 @@ import Rodape from '../../components/Rodape';
 import Subtitulo from '../../components/Subtitulo';
 import Tabela from '../../components/Tabela';
 import Titulo from '../../components/Titulo';
-import useDadosConsulta from '../../useDadosConsulta';
-import useDadosProfissional from '../../useDadosProfissional';
+import useDadosConsulta from '../../hooks/useDadosConsulta';
+import useDadosProfissional from '../../hooks/useDadosProfissional';
 import ModalCadastro from './ModalCadastro';
 
 

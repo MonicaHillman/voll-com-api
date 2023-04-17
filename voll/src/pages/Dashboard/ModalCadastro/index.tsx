@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Checkbox, FormControlLabel, FormGroup, Modal, Switch } from '@mui/material';
 import { Box } from "@mui/material";
 import icone from './assets/publish.png';
@@ -7,6 +7,9 @@ import styled from "styled-components";
 import CampoDigitacao from "../../../components/CampoDigitacao";
 import Botao from "../../../components/Botao";
 import Subtitulo from "../../../components/Subtitulo";
+import IProfissional from "../../../types/IProfissional";
+import usePost from "../../../hooks/usePost";
+
 
 const BoxCustomizado = styled(Box)`
   position: fixed;
@@ -47,15 +50,51 @@ display: none;
 export default function ModalCadastro() {
     const [open, setOpen] = useState(true);
     const handleClose = () => setOpen(false);
-
+    const [planosSelecionados, setPlanosSelecionados] = useState<string[]>([]);
     const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
     const [especialidade, setEspecialidade] = useState("");
     const [crm, setCrm] = useState("");
-    const [localizacao, setLocalizacao] = useState("");
-    const [telefone, setTelefone] = useState("");
 
+    const [telefone, setTelefone] = useState("");
     const label = { inputProps: { 'aria-label': 'Atende por plano?' } };
+    const { cadastrarDados, erro, sucesso } = usePost();
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const checkboxValue = event.target.value;
+        if (event.target.checked) {
+            setPlanosSelecionados([...planosSelecionados, checkboxValue]);
+            console.log(planosSelecionados)
+        } else {
+            setPlanosSelecionados(planosSelecionados.filter(plano => plano !== checkboxValue));
+        }
+    };
+
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        console.log(event)
+        event.preventDefault(); // previne o envio padrão do formulário
+
+        const profissional: IProfissional = {
+            nome: nome,
+            crm: crm,
+            imagem: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.pexels.com%2Fpt-br%2Ffoto%2Ffotografia-de-pessoa-em-roupa-de-banho-est%C3%A1-sentado-em-uma-cadeira-de-praia-ao-",
+            estaAtivo: true,
+            especialidade: especialidade,
+            email: email,
+            telefone: telefone,
+            possuiPlanoSaude: true,
+            planosSaude: planosSelecionados,
+            endereco: {
+                cep: '76541321',
+                rua: "Rua 9",
+                estado: "São Paulo",
+                numero: '65',
+                complemento: "casa"
+            }
+        }
+
+        cadastrarDados({ url: 'especialista', dados: profissional });
+    }
 
     return (
         <>
@@ -67,39 +106,38 @@ export default function ModalCadastro() {
             >
                 <BoxCustomizado>
                     <Titulo>Cadastre o especialista inserindo os dados abaixo:</Titulo>
+                    <form onSubmit={handleSubmit}>
+                        <Container>
+                            <CampoDigitacao tipo="text" label="Nome" value={nome} placeholder="Digite seu nome completo" onChange={setNome} />
+                            <CampoDigitacao tipo="email" label="Email" value={email} placeholder="Digite seu email" onChange={setEmail} />
+                            <CampoDigitacao tipo="text" label="Especialidade" value={especialidade} placeholder="Qual sua especialidade?" onChange={setEspecialidade} />
+                            <CampoDigitacao tipo="number" label="CRM" value={crm} placeholder="Insira seu número de registro" onChange={setCrm} />
+                            <CampoDigitacao tipo="tel" label="Telefone" value={telefone} placeholder="(DDD) XXXXX-XXXX" onChange={setTelefone} />
+                        </Container>
 
-                    <Container>
-                        <CampoDigitacao label="Nome" value={nome} placeholder="Digite seu nome completo" onChange={setNome} />
-                        <CampoDigitacao label="Email" value={email} placeholder="Digite seu email" onChange={setEmail} />
-                        <CampoDigitacao label="Especialidade" value={especialidade} placeholder="Qual sua especialidade?" onChange={setEspecialidade} />
-                        <CampoDigitacao label="CRM" value={crm} placeholder="Insira seu número de registro" onChange={setCrm} />
-                        <CampoDigitacao label="Localização" value={localizacao} placeholder="Insira sua cidade" onChange={setLocalizacao} />
-                        <CampoDigitacao label="Telefone" value={telefone} placeholder="(DDD) XXXXX-XXXX" onChange={setTelefone} />
-                    </Container>
+                        <Subtitulo>Foto</Subtitulo>
+                        <Rotulo htmlFor="file-upload" >
+                            <img src={icone} />
+                            <p>Clique para enviar</p>
+                        </Rotulo>
+                        <UploadImagem id="file-upload" type="file" accept="image/*"></UploadImagem>
 
-                    <Subtitulo>Foto</Subtitulo>
-                    <Rotulo htmlFor="file-upload" >
-                        <img src={icone} />
-                        <p>Clique para enviar</p>
-                    </Rotulo>
-                    <UploadImagem id="file-upload" type="file" accept="image/*"></UploadImagem>
+                        <Subtitulo>Atende por plano?</Subtitulo>
+                        <Switch {...label} />
 
-                    <Subtitulo>Atende por plano?</Subtitulo>
-                    <Switch {...label} />
+                        <Subtitulo>Selecione os planos:</Subtitulo>
+                        <FormGroup>
+                            <FormControlLabel control={<Checkbox onChange={handleChange} value="Sulamerica" />} label="Sulamerica" />
+                            <FormControlLabel control={<Checkbox onChange={handleChange} value="Unimed" />} label="Unimed" />
+                            <FormControlLabel control={<Checkbox onChange={handleChange} value="Bradesco" />} label="Bradesco" />
+                            <FormControlLabel control={<Checkbox onChange={handleChange} value="Amil" />} label="Amil" />
+                            <FormControlLabel control={<Checkbox onChange={handleChange} value="Biosaúde" />} label="Biosaúde" />
+                            <FormControlLabel control={<Checkbox onChange={handleChange} value="Biovida" />} label="Biovida" />
+                            <FormControlLabel control={<Checkbox onChange={handleChange} value="Outro" />} label="Outro" />
+                        </FormGroup>
 
-                    <Subtitulo>Selecione os planos:</Subtitulo>
-                    <FormGroup>
-                        <FormControlLabel control={<Checkbox />} label="Sulamerica" />
-                        <FormControlLabel control={<Checkbox />} label="Unimed" />
-                        <FormControlLabel control={<Checkbox />} label="Bradesco" />
-                        <FormControlLabel control={<Checkbox />} label="Amil" />
-                        <FormControlLabel control={<Checkbox />} label="Biosaúde" />
-                        <FormControlLabel control={<Checkbox />} label="Biosaúde" />
-                        <FormControlLabel control={<Checkbox />} label="Biovida" />
-                        <FormControlLabel control={<Checkbox />} label="Outro" />
-                    </FormGroup>
-
-                    <Botao>Cadastrar</Botao>
+                        <Botao>Cadastrar</Botao>
+                    </form>
                 </BoxCustomizado>
             </Modal>
         </>

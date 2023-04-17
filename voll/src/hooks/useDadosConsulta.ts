@@ -1,4 +1,4 @@
-import IConsulta from "./types/IConsulta";
+import IConsulta from "../types/IConsulta";
 import useFetch from "./useFetch";
 
 const useDadosConsulta = () => {

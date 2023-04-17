@@ -1,8 +1,10 @@
 import { type Request, type Response } from 'express'
 import { AppDataSource } from '../data-source.js'
 import { Especialista } from './EspecialistaEntity.js'
-import { BadRequestError, NotFoundError } from '../apiError/api-error.js'
 import { mapeiaPlano } from '../utils/planoSaudeUtils.js'
+import { Endereco } from '../enderecos/enderecoEntity.js'
+import { AppError } from '../error/ErrorHandler.js'
+import { encryptPassword } from '../utils/senhaUtils.js'
 
 // Get All
 export const especialistas = async (
@@ -13,7 +15,7 @@ export const especialistas = async (
   if (allEspecialistas.length > 0) {
     res.status(200).json(allEspecialistas)
   } else {
-    throw new NotFoundError('Não encontramos especialistas')
+    throw new AppError('Não encontramos especialistas')
   }
 }
 // Post
@@ -22,13 +24,13 @@ export const criarEspecialista = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  let { nome, crm, imagem, especialidade, email, telefone, estaAtivo, possuiPlanoSaude, planosSaude } = req.body
+  let { nome, crm, imagem, especialidade, endereco, email, telefone, estaAtivo, possuiPlanoSaude, planosSaude, senha } = req.body
 
   if (possuiPlanoSaude === true && planosSaude !== undefined) {
     // transforma array de numbers em array de strings com os nomes dos planos definidos no enum correspondente
     planosSaude = mapeiaPlano(planosSaude)
   }
-
+  const senhaCriptografada = encryptPassword(senha)
   const especialista = new Especialista(
     nome,
     crm,
@@ -36,8 +38,24 @@ export const criarEspecialista = async (
     estaAtivo,
     especialidade,
     email,
-    telefone, possuiPlanoSaude, planosSaude
+    telefone, possuiPlanoSaude, planosSaude, senhaCriptografada
   )
+
+  const enderecoPaciente = new Endereco()
+
+  if (endereco !== undefined) {
+    enderecoPaciente.cep = endereco.cep
+    enderecoPaciente.rua = endereco.rua
+    enderecoPaciente.estado = endereco.estado
+    enderecoPaciente.numero = endereco.numero
+    enderecoPaciente.complemento = endereco.complemento
+
+    especialista.endereco = enderecoPaciente
+
+    await AppDataSource.manager.save(Endereco, enderecoPaciente).catch((err) => {
+      console.log(err)
+    })
+  }
 
   try {
     await AppDataSource.manager.save(Especialista, especialista)
@@ -46,8 +64,7 @@ export const criarEspecialista = async (
     if ((await AppDataSource.manager.findOne(Especialista, { where: { crm } })) != null) {
       res.status(422).json({ message: 'Crm já cadastrado' })
     } else {
-      console.log(error)
-      throw new BadRequestError('Especialista não foi criado')
+      throw new AppError('Especialista não foi criado')
     }
   }
 }
@@ -61,13 +78,13 @@ export const especialistaById = async (req: Request, res: Response): Promise<voi
   if (especialista !== null) {
     res.status(200).json(especialista)
   } else {
-    throw new NotFoundError('Id não encontrado ')
+    throw new AppError('Id não encontrado ')
   }
 }
 
 // Put especialista/:id
 export const atualizarEspecialista = async (req: Request, res: Response): Promise<void> => {
-  let { nome, crm, imagem, especialidade, email, telefone, estaAtivo, possuiPlanoSaude, planosSaude } = req.body
+  let { nome, crm, imagem, especialidade, email, telefone, estaAtivo, possuiPlanoSaude, planosSaude, senha } = req.body
   const { id } = req.params
 
   if (possuiPlanoSaude === true && planosSaude !== undefined) {
@@ -95,7 +112,7 @@ export const atualizarEspecialista = async (req: Request, res: Response): Promis
     await AppDataSource.manager.save(Especialista, especialistaUpdate)
     res.json(especialistaUpdate)
   } else {
-    throw new BadRequestError('Id não encontrado ')
+    throw new AppError('Id não encontrado ')
   }
 }
 
@@ -108,11 +125,12 @@ export const apagarEspecialista = async (
   const especialistaDel = await AppDataSource.manager.findOneBy(Especialista, {
     id
   })
+  console.log(especialistaDel)
   if (especialistaDel !== null) {
     await AppDataSource.manager.remove(Especialista, especialistaDel)
     res.json({ message: 'Especialista apagado!' })
   } else {
-    throw new BadRequestError('Id não encontrado')
+    throw new AppError('Id não encontrado')
   }
 }
 
@@ -137,6 +155,21 @@ export const atualizaContato = async (
       .execute()
     res.status(200).json(buscaEspecialista)
   } else {
-    throw new BadRequestError('Telefone não atualizado')
+    throw new AppError('Telefone não atualizado')
   }
+}
+
+export const buscarEspecialistas = async (req: Request, res: Response): Promise<Response> => {
+  const { especialidade, estado } = req.query
+
+  if (especialidade === null || estado === null) { throw new AppError('Especialidade ou estados inválidos') }
+
+  const especialistas = await AppDataSource.manager.find(Especialista, {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+    where: especialidade ? { especialidade: especialidade as string } : undefined, relations: ['endereco']
+  })
+
+  const resultado = especialistas.filter(especialista => especialista.endereco.estado === estado)
+
+  return res.json(resultado)
 }

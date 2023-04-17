@@ -3,4 +3,5 @@ export default interface IEndereco {
     rua: string;
     numero: string;
     complemento?: string;
+    estado: string;
 }

@@ -5,6 +5,7 @@ interface Props {
     value: string;
     placeholder: string;
     onChange: (value: string) => void;
+    tipo: string;
 };
 
 const Rotulo = styled.label`
@@ -36,14 +37,15 @@ width: 100%;
 `
 
 
-export default function CampoDigitacao({ label, value, placeholder, onChange }: Props) {
+export default function CampoDigitacao({ label, value, placeholder, onChange, tipo }: Props) {
     return (
         <Container>
             <Rotulo>{label}</Rotulo>
-            <Campo type="text"
+            <Campo type={tipo}
                 value={value}
                 placeholder={placeholder}
                 onChange={(e) => onChange(e.target.value)}
+                required
             />
         </Container>
     );

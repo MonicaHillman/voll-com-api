@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import logo from './assets/logo.png';
 import perfil from './assets/perfil.png';
+import autenticaStore from '../../stores/autentica.store';
 
 const CabecalhoEstilizado = styled.header`
     display:flex;
@@ -22,12 +23,20 @@ const LinkEstilizado = styled.a`
 `
 
 function Cabecalho() {
+
+    const handleLogout = () => {
+        autenticaStore.logout();
+    };
+
     return (
         <CabecalhoEstilizado>
             <img src={logo} alt="logo da empresa Voll" />
             <Container>
                 <img src={perfil} alt="imagem de perfil do usuário" />
-                <LinkEstilizado href="#">Sair</LinkEstilizado>
+                {autenticaStore.estaAutenticado
+                    ? <LinkEstilizado href="/" onClick={handleLogout}>Sair</LinkEstilizado>
+                    : <LinkEstilizado href="/login">Entrar</LinkEstilizado>
+                }
             </Container>
         </CabecalhoEstilizado>
     )

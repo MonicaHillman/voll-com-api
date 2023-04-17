@@ -5,18 +5,26 @@ import { Endereco } from '../enderecos/enderecoEntity.js'
 import { Especialista } from '../especialistas/EspecialistaEntity.js'
 import { mapeiaPlano } from '../utils/planoSaudeUtils.js'
 import { Clinica } from './clinicaEntity.js'
+import { encryptPassword } from '../utils/senhaUtils.js'
 
 export const criarClinica = async (req: Request, res: Response): Promise<void> => {
   const {
-    endereco,
+    endereco, nome,
+    email, senha,
+
     planoDeSaudeAceitos
   } = req.body
 
-  const clinica = new Clinica()
+  const senhaCriptografada = encryptPassword(senha)
 
+  const clinica = new Clinica()
+  clinica.nome = nome
+  clinica.email = email
+  clinica.senha = senhaCriptografada
   const enderecoClinica = new Endereco()
   enderecoClinica.cep = endereco.cep
   enderecoClinica.rua = endereco.rua
+  enderecoClinica.estado = endereco.estado
   enderecoClinica.numero = endereco.numero
   enderecoClinica.complemento = endereco.complemento
 
@@ -24,7 +32,9 @@ export const criarClinica = async (req: Request, res: Response): Promise<void> =
 
   clinica.endereco = enderecoClinica
 
-  clinica.planoDeSaudeAceitos = mapeiaPlano(planoDeSaudeAceitos)
+  if (planoDeSaudeAceitos !== undefined) {
+    clinica.planoDeSaudeAceitos = mapeiaPlano(planoDeSaudeAceitos)
+  }
 
   await AppDataSource.manager.save(Clinica, clinica)
   res.json(clinica)
@@ -47,7 +57,7 @@ export const buscarClinica = async (req: Request, res: Response): Promise<void> 
 
 export const atualizarClinica = async (req: Request, res: Response): Promise<void> => {
   const {
-    endereco,
+    endereco, email, senha,
     planoDeSaudeAceitos
   } = req.body
 
@@ -62,8 +72,12 @@ export const atualizarClinica = async (req: Request, res: Response): Promise<voi
     if (endereco !== null) {
       clinica.endereco.cep = endereco.cep
       clinica.endereco.rua = endereco.rua
+      clinica.endereco.estado = endereco.estado
       clinica.endereco.numero = endereco.numero
       clinica.endereco.complemento = endereco.complemento
+    }
+    if (email !== null && senha !== null) {
+      clinica.email = email
     }
     await AppDataSource.manager.save(Clinica, clinica)
   }
@@ -84,8 +98,6 @@ export const listaEspecialistasPorClinica = async (req: Request, res: Response):
 }
 
 export const atualizaEspecialistaPeloIdDaClinica = async (req: Request, res: Response): Promise<Response> => {
-  //! Não consegui pegar o especialistaId pelo req.params
-  // const { id, especialistaId } = req.params
   const { id } = req.params
   const { especialistaId } = req.body
 
@@ -114,9 +126,10 @@ export const deletarClinica = async (req: Request, res: Response): Promise<void>
     relations: ['endereco']
   })
   if (clinica !== null) {
-    const endereco = clinica.endereco
     await AppDataSource.manager.remove(Clinica, clinica)
-    await AppDataSource.manager.remove(Endereco, endereco)
+
+    // const endereco = clinica.endereco
+    // await AppDataSource.manager.remove(Endereco, endereco)
     res.json({ message: 'Clinica apagada!' })
   }
 }

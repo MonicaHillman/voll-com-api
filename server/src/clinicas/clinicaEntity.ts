@@ -1,26 +1,27 @@
-
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm'
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  Relation
+} from 'typeorm'
 import { Endereco } from '../enderecos/enderecoEntity.js'
 import { Especialista } from '../especialistas/EspecialistaEntity.js'
-
-enum planosSaude {
-  Sulamerica,
-  Unimed,
-  Bradesco,
-  Amil,
-  Biosaude,
-  Biovida,
-  Outro
-}
+import { type IAutenticavel } from '../auth/IAutencavel.js'
+import { Role } from '../auth/roles.js'
 
 @Entity()
-export class Clinica {
+export class Clinica implements IAutenticavel {
   @PrimaryGeneratedColumn('uuid')
     id: string
 
   @OneToOne(() => Endereco, {
     cascade: ['update']
   })
+  @Column('varchar', { length: 100 })
+    nome: string
 
   @JoinColumn({ referencedColumnName: 'id' })
     endereco: Relation<Endereco>
@@ -28,6 +29,15 @@ export class Clinica {
   @OneToMany(() => Especialista, (especialista) => especialista.clinica)
     especialistas: Relation<Especialista[]>
 
-  @Column({ type: 'simple-array' })
+  @Column({ type: 'simple-array', nullable: true })
     planoDeSaudeAceitos: string[]
+
+  @Column('varchar', { length: 100 })
+    email: string
+
+  @Column('varchar', { length: 100, select: false })
+    senha: string // Criptografia?
+
+  @Column('varchar', { nullable: false, default: Role.clinica })
+    role: Role
 }
