@@ -5,10 +5,11 @@ export default interface IProfissional {
     crm: string,
     imagem: string,
     especialidade: string,
+    possuiPlanoSaude: boolean,
+    senha: string,
+    planosSaude: string[],
     estaAtivo: boolean,
     email: string,
     telefone: string,
-    possuiPlanoSaude: boolean,
-    planosSaude: string[],
     endereco: IEndereco;
 }

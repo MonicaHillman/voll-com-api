@@ -24,9 +24,6 @@ export default function Dashboard() {
     }
 
 
-    console.log(autenticaStore.usuario.token);
-
-
     return (
         <>
             <Container>
