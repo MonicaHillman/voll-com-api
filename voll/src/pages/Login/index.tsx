@@ -81,7 +81,7 @@ export default function Login() {
                 {erro ? <p>{'Verifique suas credenciais'}</p> : ''}
             </Formulario>
             <Paragrafo>Esqueceu sua senha?</Paragrafo>
-            <ParagrafoCadastro>Ainda não tem conta? <LinkCustomizado to="#">Faça seu cadastro!</LinkCustomizado></ParagrafoCadastro>
+            <ParagrafoCadastro>Ainda não tem conta? <LinkCustomizado to="/cadastro">Faça seu cadastro!</LinkCustomizado></ParagrafoCadastro>
         </>
     )
 }
